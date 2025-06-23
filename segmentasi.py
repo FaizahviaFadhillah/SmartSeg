@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
+from kneed import KneeLocator
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
@@ -128,7 +129,7 @@ with tab1:
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
     else:
-        st.info("**Menampilkan analisis menggunakan contoh dataset 'shopping_trends.csv'. Anda dapat mengunggah file Anda sendiri di atas.**")
+        st.markdown("**Menampilkan analisis menggunakan contoh dataset 'shopping_trends.csv'. Anda dapat mengunggah file Anda sendiri di atas.**")
         df = df_sample.copy()
 
     st.subheader("Preview Dataset")
@@ -161,20 +162,50 @@ with tab1:
 
             # Logika clustering 
             if algo == "K-Means":
-                n_clusters = st.slider("Jumlah cluster", 2, 10, 3)
-                model = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+                
+                st.markdown("---")
+                st.subheader("Analisis Metode Elbow untuk K-Means")
+
+                wcss = []
+                k_range = range(2, 11)
+                for i in k_range:
+                    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42, n_init=10)
+                    kmeans.fit(X_scaled)
+                    wcss.append(kmeans.inertia_)
+
+                # Menemukan k optimal secara otomatis
+                kneedle = KneeLocator(list(k_range), wcss, S=1.0, curve="convex", direction="decreasing")
+                optimal_k = kneedle.elbow
+
+                # Menampilkan plot Elbow
+                fig_elbow, ax_elbow = plt.subplots(figsize=(8, 4))
+                ax_elbow.plot(k_range, wcss, marker='o')
+                ax_elbow.set_title('Metode Elbow untuk Menentukan k Optimal')
+                ax_elbow.set_xlabel('Jumlah Cluster (k)')
+                ax_elbow.set_ylabel('WCSS (Inertia)')
+                ax_elbow.axvline(x=optimal_k, color='red', linestyle='--', label=f'k Optimal = {optimal_k}')
+                ax_elbow.legend()
+                st.pyplot(fig_elbow)
+                
+                st.success(f"Berdasarkan Metode Elbow, jumlah klaster optimal yang disarankan adalah **{optimal_k}**.")
+
+                # Menjalankan K-Means dengan k optimal
+                model = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
                 labels = model.fit_predict(X_scaled)
+
             elif algo == "DBSCAN":
                 eps = st.slider("Nilai eps (radius)", 0.1, 5.0, 0.5)
                 min_samples = st.slider("Minimal samples", 3, 20, 5)
                 model = DBSCAN(eps=eps, min_samples=min_samples)
                 labels = model.fit_predict(X_scaled)
-            else:
+            else: # Hierarchical Clustering
                 n_clusters = st.slider("Jumlah cluster", 2, 10, 3)
                 model = AgglomerativeClustering(n_clusters=n_clusters)
                 labels = model.fit_predict(X_scaled)
             
             # Visualisasi 
+            st.markdown("---")
+            st.subheader("Hasil Visualisasi Segmentasi")
             fig, ax = plt.subplots(figsize=(8, 5))
             if algo == "DBSCAN":
                 unique_labels_for_palette = np.unique(labels)
@@ -264,24 +295,6 @@ with tab2:
            file_name='shopping_trends.csv',
            mime='text/csv',
         )
-        st.markdown("---") # Garis pemisah
-        st.subheader("Keterangan Kolom")
-        # Deskripsi kolom disesuaikan dengan dataset shopping_trends.csv
-        st.markdown("""
-        - **Customer ID**: ID unik untuk setiap pelanggan.
-        - **Age**: Usia pelanggan.
-        - **Gender**: Jenis kelamin pelanggan.
-        - **Item Purchased**: Barang yang dibeli.
-        - **Category**: Kategori barang yang dibeli.
-        - **Purchase Amount (USD)**: Jumlah pembelian dalam USD.
-        - **Location**: Lokasi pelanggan.
-        - **Size**: Ukuran barang.
-        - **Color**: Warna barang.
-        - **Season**: Musim saat pembelian dilakukan.
-        - **Review Rating**: Rating ulasan yang diberikan pelanggan (1-5).
-        - **Previous Purchases**: Jumlah pembelian sebelumnya.
-        - **Frequency of Purchases**: Seberapa sering pelanggan melakukan pembelian.
-        """)
     else:
         st.warning("Gagal memuat contoh dataset. Silakan unggah dataset Anda sendiri di tab 'Segmentasi'.")
 
@@ -296,7 +309,7 @@ with tab3:
     | *Hierarchical Clustering* | Mengelompokkan secara bertingkat, ideal untuk visualisasi hirarki. |
     
     Anggota Kelompok:*- Faizah Via Fadhillah*
-                     *- Anggita Risqi Nur Clarita*
-                     *- Zahra Nurhaliza*""")
+                      *- Anggita Risqi Nur Clarita*
+                      *- Zahra Nurhaliza*""")
 
 st.markdown("<footer>© 2025 - Segmentasi Pelanggan App by Kelompok 1</footer>", unsafe_allow_html=True)
