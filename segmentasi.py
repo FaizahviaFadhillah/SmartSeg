@@ -264,6 +264,24 @@ with tab2:
            file_name='shopping_trends.csv',
            mime='text/csv',
         )
+        st.markdown("---") # Garis pemisah
+        st.subheader("Keterangan Kolom")
+        # Deskripsi kolom disesuaikan dengan dataset shopping_trends.csv
+        st.markdown("""
+        - **Customer ID**: ID unik untuk setiap pelanggan.
+        - **Age**: Usia pelanggan.
+        - **Gender**: Jenis kelamin pelanggan.
+        - **Item Purchased**: Barang yang dibeli.
+        - **Category**: Kategori barang yang dibeli.
+        - **Purchase Amount (USD)**: Jumlah pembelian dalam USD.
+        - **Location**: Lokasi pelanggan.
+        - **Size**: Ukuran barang.
+        - **Color**: Warna barang.
+        - **Season**: Musim saat pembelian dilakukan.
+        - **Review Rating**: Rating ulasan yang diberikan pelanggan (1-5).
+        - **Previous Purchases**: Jumlah pembelian sebelumnya.
+        - **Frequency of Purchases**: Seberapa sering pelanggan melakukan pembelian.
+        """)
     else:
         st.warning("Gagal memuat contoh dataset. Silakan unggah dataset Anda sendiri di tab 'Segmentasi'.")
 
